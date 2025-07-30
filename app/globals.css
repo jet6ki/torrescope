@@ -2,6 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Apple Light Theme with High Contrast (Dark-like but Light) */
+    --background: #c1c1c1;
+    --foreground: #1A1A1A;
+    --muted: #4A4A4A;
+    --muted-foreground: #4A4A4A;
+    --accent: #FF9500;
+    --accent-foreground: #FFFFFF;
+    --border: #D1D5DB;
+    --input: #FFFFFF;
+    --ring: #FF9500;
+    --card: #FFFFFF;
+    --card-foreground: #1A1A1A;
+    --primary: #FF9500;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F3F4F6;
+    --secondary-foreground: #1A1A1A;
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+    --orange-hint: #FFF4E6;
+    --orange-border: #FFE4CC;
+  }
+
+  .dark {
+    /* Apple Dark Theme with Professional Orange & High Contrast */
+    --background: #0A0A0A;
+    --foreground: #F5F5F7;
+    --muted: #A1A1A6;
+    --muted-foreground: #A1A1A6;
+    --accent: #FF9F0A;
+    --accent-foreground: #1D1D1F;
+    --border: #3A3A3C;
+    --input: #1C1C1E;
+    --ring: #FF9F0A;
+    --card: #1C1C1E;
+    --card-foreground: #F5F5F7;
+    --primary: #FF9F0A;
+    --primary-foreground: #1D1D1F;
+    --secondary: #2C2C2E;
+    --secondary-foreground: #F5F5F7;
+    --destructive: #FF453A;
+    --destructive-foreground: #1D1D1F;
+    --orange-hint: #2A1F0A;
+    --orange-border: #3D2E15;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01";
+    font-variation-settings: "opsz" 32;
+  }
+}
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -80,6 +156,7 @@
   body {
     @apply bg-background text-foreground;
   }
+
 }
 
 /* Custom scrollbar styles */

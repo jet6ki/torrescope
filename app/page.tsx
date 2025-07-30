@@ -1,182 +1,163 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchBar } from '@/components/SearchBar';
-import { SkillRadar } from '@/components/SkillRadar';
-import { CompareDropzone } from '@/components/CompareDropzone';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { FastSearchBar } from '@/components/FastSearchBar';
+import { MinimalHeader } from '@/components/MinimalHeader';
+import { CenteredTabs } from '@/components/CenteredTabs';
+import { EnhancedOverview } from '@/components/EnhancedOverview';
+import { EnhancedSkills } from '@/components/EnhancedSkills';
+import { EnhancedExperience } from '@/components/EnhancedExperience';
+import { EnhancedCompare } from '@/components/EnhancedCompare';
 import { fetchGenome } from '@/lib/api';
 import { useCompareStore } from '@/lib/store';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle } from 'lucide-react';
+import type { ProcessedGenome } from '@/types/torre';
 
 export default function HomePage() {
+  const queryClient = useQueryClient();
   const [primaryUsername, setPrimaryUsername] = useState<string>('');
-  const [showCompare, setShowCompare] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const { compareUsername, setCompareUsername } = useCompareStore();
 
   const {
     data: primaryData,
     isLoading: primaryLoading,
     error: primaryError,
-  } = useQuery({
+    refetch: refetchPrimary,
+  } = useQuery<ProcessedGenome>({
     queryKey: ['genome', primaryUsername],
     queryFn: () => fetchGenome(primaryUsername),
-    enabled: !!primaryUsername,
+    enabled: !!primaryUsername && primaryUsername.length > 0,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const {
     data: compareData,
     isLoading: compareLoading,
     error: compareError,
-  } = useQuery({
+  } = useQuery<ProcessedGenome>({
     queryKey: ['genome', compareUsername],
     queryFn: () => fetchGenome(compareUsername!),
-    enabled: !!compareUsername,
+    enabled: !!compareUsername && compareUsername.length > 0,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 
   const handleSearch = (username: string) => {
     setPrimaryUsername(username);
+    setIsInitialLoad(false);
+    setActiveTab('overview');
   };
 
-  const handleAddComparison = () => {
-    setShowCompare(true);
+  const handleLogoClick = () => {
+    setPrimaryUsername('');
+    setCompareUsername(null);
+    setActiveTab('overview');
+    setIsInitialLoad(true);
   };
 
-  const handleRemoveComparison = () => {
-    setShowCompare(false);
+  const handleAddCompare = (username: string) => {
+    setCompareUsername(username);
+  };
+
+  const handleRemoveCompare = () => {
     setCompareUsername(null);
   };
 
+  if (!primaryUsername) {
+    return (
+      <>
+        <MinimalHeader isVisible={false} onLogoClick={handleLogoClick} />
+        <div className="min-h-screen flex items-center justify-center px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: isInitialLoad ? 0.2 : 0 }}
+            className="w-full max-w-3xl"
+          >
+            <FastSearchBar onSearch={handleSearch} />
+          </motion.div>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-          Visualize Your
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-            {' '}
-            Skills
-          </span>
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Discover your Torre skill profile with interactive radar charts,
-          percentile analysis, and powerful comparison tools.
-        </p>
-      </div>
-
-      {/* Search Section */}
-      <Card className="mx-auto max-w-2xl">
-        <CardContent className="p-6">
-          <SearchBar onSearch={handleSearch} />
-        </CardContent>
-      </Card>
-
-      {/* Results Section */}
-      {primaryUsername && (
-        <div className="space-y-6">
+    <>
+      <MinimalHeader isVisible={true} onLogoClick={handleLogoClick} />
+      
+      <motion.main
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="pt-20 pb-12 px-6"
+      >
+        <div className="max-w-6xl mx-auto space-y-8">
           {/* Loading State */}
           {primaryLoading && (
-            <Card>
-              <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="bg-card border border-border/50 rounded-2xl p-8">
                 <div className="space-y-4">
-                  <Skeleton className="h-8 w-48 mx-auto" />
-                  <Skeleton className="h-96 w-full" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                  <Skeleton className="h-8 w-48 rounded-lg" />
+                  <Skeleton className="h-4 w-32 rounded-lg" />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div className="bg-card border border-border/50 rounded-2xl p-8">
+                <Skeleton className="h-96 w-full rounded-xl" />
+              </div>
+            </div>
           )}
 
           {/* Error State */}
-          {primaryError && (
-            <Card className="border-destructive">
-              <CardContent className="p-6 text-center">
-                <div className="text-destructive space-y-2">
-                  <h3 className="text-lg font-semibold">User Not Found</h3>
-                  <p className="text-sm">
-                    Could not find Torre profile for "{primaryUsername}". Please
-                    check the username and try again.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {primaryError && !primaryLoading && !primaryData && (
+            <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-8 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-destructive mb-2">Profile Not Found</h3>
+              <p className="text-muted">
+                Could not find Torre profile for "{primaryUsername}". Please check the username and try again.
+              </p>
+            </div>
           )}
 
           {/* Success State */}
-          {primaryData && (
-            <div className="space-y-6">
-              {/* User Header */}
-              <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">{primaryData.username}</h2>
-                <p className="text-muted-foreground">
-                  {primaryData.skills.length} skills analyzed
-                </p>
-              </div>
-
-              {/* Comparison Controls */}
-              <div className="flex justify-center space-x-4">
-                {!showCompare ? (
-                  <Button onClick={handleAddComparison} variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Comparison
-                  </Button>
-                ) : (
-                  <div className="flex items-center space-x-4">
-                    <Button onClick={handleRemoveComparison} variant="outline">
-                      Remove Comparison
-                    </Button>
-                    {compareUsername && (
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Users className="mr-1 h-4 w-4" />
-                        Comparing with {compareUsername}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Compare Dropzone */}
-              {showCompare && !compareUsername && (
-                <Card>
-                  <CardContent className="p-6">
-                    <CompareDropzone />
-                  </CardContent>
-                </Card>
+          {primaryData && !primaryLoading && !primaryError && (
+            <CenteredTabs activeTab={activeTab} onTabChange={setActiveTab}>
+              {activeTab === 'overview' && (
+                <EnhancedOverview data={primaryData} />
               )}
-
-              {/* Radar Chart */}
-              <Card>
-                <CardContent className="p-6">
-                  <SkillRadar
-                    primaryData={primaryData}
-                    compareData={compareData}
-                    isCompareLoading={compareLoading}
-                    compareError={compareError}
-                  />
-                </CardContent>
-              </Card>
-            </div>
+              
+              {activeTab === 'skills' && (
+                <EnhancedSkills 
+                  data={primaryData} 
+                  compareData={compareData} 
+                />
+              )}
+              
+              {activeTab === 'experience' && (
+                <EnhancedExperience 
+                  data={primaryData} 
+                  isLoading={primaryLoading}
+                />
+              )}
+              
+              {activeTab === 'compare' && (
+                <EnhancedCompare
+                  primaryData={primaryData}
+                  compareData={compareData}
+                  onAddCompare={handleAddCompare}
+                  onRemoveCompare={handleRemoveCompare}
+                />
+              )}
+            </CenteredTabs>
           )}
         </div>
-      )}
-
-      {/* Empty State */}
-      {!primaryUsername && (
-        <div className="text-center space-y-4 py-12">
-          <div className="mx-auto h-24 w-24 rounded-full bg-muted flex items-center justify-center">
-            <Users className="h-12 w-12 text-muted-foreground" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">Ready to explore?</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Enter any Torre username above to visualize their skill profile
-              and see how they compare to the global population.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
+      </motion.main>
+    </>
   );
 }

@@ -9,10 +9,12 @@ import {
   Radar,
   ResponsiveContainer,
   Legend,
+  Tooltip,
 } from 'recharts';
 import { Button } from '@/components/ui/button';
-import { Download, Maximize2 } from 'lucide-react';
+import { Download, Maximize2, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptySkillsState } from './EmptySkillsState';
 import toast from 'react-hot-toast';
 import html2canvas from 'html2canvas';
 import type { ProcessedGenome } from '@/types/torre';
@@ -22,41 +24,79 @@ interface SkillRadarProps {
   compareData?: ProcessedGenome | null;
   isCompareLoading?: boolean;
   compareError?: any;
+  onRetry?: () => void;
+  maxSkills?: number;
+  showPercentiles?: boolean;
 }
 
 interface RadarDataPoint {
   skill: string;
+  fullName: string;
   primary: number;
   compare?: number;
   primaryPercentile: number;
   comparePercentile?: number;
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-background border rounded-lg p-3 shadow-lg">
+        <p className="font-medium text-sm mb-2">{data.fullName}</p>
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex items-center space-x-2 text-xs">
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-muted-foreground">{entry.dataKey}:</span>
+            <span className="font-medium">
+              {entry.value.toFixed(1)}/5.0
+            </span>
+            <span className="text-muted-foreground">
+              ({entry.dataKey === 'primary' ? data.primaryPercentile : data.comparePercentile}th percentile)
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export function SkillRadar({
   primaryData,
   compareData,
   isCompareLoading,
   compareError,
+  onRetry,
+  maxSkills = 12,
+  showPercentiles = true,
 }: SkillRadarProps) {
   const chartRef = useRef<HTMLDivElement>(null);
+
+  if (!primaryData.skills || primaryData.skills.length === 0) {
+    return <EmptySkillsState userData={primaryData} onRetry={onRetry} />;
+  }
 
   const radarData = useMemo(() => {
     if (!primaryData) return [];
 
-    // Get all unique skills from both datasets
     const allSkills = new Set([
       ...primaryData.skills.map((s) => s.name),
       ...(compareData?.skills.map((s) => s.name) || []),
     ]);
 
     const data: RadarDataPoint[] = Array.from(allSkills)
-      .slice(0, 12) // Limit to 12 skills for better visualization
+      .slice(0, 12) 
       .map((skillName) => {
         const primarySkill = primaryData.skills.find((s) => s.name === skillName);
         const compareSkill = compareData?.skills.find((s) => s.name === skillName);
 
         return {
-          skill: skillName.length > 15 ? `${skillName.slice(0, 15)}...` : skillName,
+          skill: skillName.length > 20 ? `${skillName.slice(0, 20)}...` : skillName,
+          fullName: skillName,
           primary: primarySkill?.proficiency || 0,
           compare: compareSkill?.proficiency,
           primaryPercentile: primarySkill?.percentile || 0,
@@ -94,9 +134,9 @@ export function SkillRadar({
   };
 
   const getPercentileColor = (percentile: number) => {
-    if (percentile >= 96) return '#f59e0b'; // amber-500
-    if (percentile >= 80) return '#10b981'; // emerald-500
-    if (percentile >= 50) return '#0ea5e9'; // sky-500
+    if (percentile >= 96) return '#f59e0b'; 
+    if (percentile >= 80) return '#10b981'; 
+    if (percentile >= 50) return '#0ea5e9'; 
     return '#6b7280'; // gray-500
   };
 
@@ -141,12 +181,32 @@ export function SkillRadar({
         </div>
       )}
 
+      {/* Data Source Info */}
+      <div className="mb-4 p-3 bg-muted/50 rounded-lg border">
+        <div className="flex items-start space-x-2">
+          <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium mb-1">Data Source</p>
+            <p className="text-muted-foreground">
+              Skills data is sourced from Torre.ai profiles. Percentiles are calculated based on
+              skill proficiency levels (0-5 scale) compared to global Torre user distribution.
+            </p>
+            {radarData.length > 0 && (
+              <p className="text-muted-foreground mt-1">
+                Showing {radarData.length} skills for {primaryData.person.name || primaryData.username}
+                {compareData && ` and ${compareData.person.name || compareData.username}`}.
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Chart Container */}
       <div ref={chartRef} className="w-full">
         <div className="h-96 sm:h-[500px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} margin={{ top: 20, right: 80, bottom: 20, left: 80 }}>
-              <PolarGrid gridType="polygon" />
+              <PolarGrid gridType="polygon" stroke="hsl(var(--border))" />
               <PolarAngleAxis
                 dataKey="skill"
                 tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
@@ -158,8 +218,9 @@ export function SkillRadar({
                 tickCount={6}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
               />
+              <Tooltip content={<CustomTooltip />} />
               <Radar
-                name={primaryData.username}
+                name={primaryData.person.name}
                 dataKey="primary"
                 stroke="#3b82f6"
                 fill="#3b82f6"
@@ -167,9 +228,9 @@ export function SkillRadar({
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
               />
-              {compareData && (
+              {compareData && compareData.skills.length > 0 && (
                 <Radar
-                  name={compareData.username}
+                  name={compareData.person.name}
                   dataKey="compare"
                   stroke="#ef4444"
                   fill="#ef4444"
@@ -178,7 +239,12 @@ export function SkillRadar({
                   dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
                 />
               )}
-              <Legend />
+              <Legend
+                wrapperStyle={{
+                  fontSize: '14px',
+                  paddingTop: '20px'
+                }}
+              />
             </RadarChart>
           </ResponsiveContainer>
         </div>

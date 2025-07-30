@@ -26,7 +26,6 @@ export default function RadarPage() {
     compare?: string;
   }>({ primary: '' });
 
-  // Parse URL parameters
   useEffect(() => {
     if (!params.slugs || params.slugs.length === 0) {
       router.push('/');
@@ -181,7 +180,6 @@ export default function RadarPage() {
   );
 }
 
-// Generate metadata for better SEO and social sharing
 export async function generateMetadata({
   params,
 }: {
@@ -189,7 +187,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   if (!params.slugs || params.slugs.length === 0) {
     return {
-      title: 'Torre Radar',
+      title: 'TorreScope',
       description: 'Skill visualization for Torre users',
     };
   }
@@ -200,11 +198,11 @@ export async function generateMetadata({
   const compare = parts[1];
 
   const title = compare
-    ? `${primary} vs ${compare} - Torre Radar`
-    : `${primary} - Torre Radar`;
+    ? `${primary} vs ${compare} - TorreScope`
+    : `${primary} - TorreScope`;
 
   const description = compare
-    ? `Compare skill profiles between ${primary} and ${compare} on Torre Radar`
+    ? `Compare skill profiles between ${primary} and ${compare} on TorreScope`
     : `View ${primary}'s skill radar chart with percentile analysis`;
 
   return {

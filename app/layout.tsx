@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Torre Radar | Visualize Your Skills',
+  title: 'TorreScope | Visualize Your Skills',
   description:
     'Interactive skill radar charts for Torre.ai users with percentile analysis and comparison features.',
   keywords: [
@@ -20,32 +20,32 @@ export const metadata: Metadata = {
     'percentile',
     'comparison',
   ],
-  authors: [{ name: 'Torre Radar Team' }],
-  creator: 'Torre Radar',
+  authors: [{ name: 'TorreScope Team' }],
+  creator: 'TorreScope',
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://torre-radar.vercel.app',
-    title: 'Torre Radar | Visualize Your Skills',
+    title: 'TorreScope | Visualize Your Skills',
     description:
       'Interactive skill radar charts for Torre.ai users with percentile analysis and comparison features.',
-    siteName: 'Torre Radar',
+    siteName: 'TorreScope',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Torre Radar - Skill Visualization',
+        alt: 'TorreScope - Skill Visualization',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Torre Radar | Visualize Your Skills',
+    title: 'TorreScope | Visualize Your Skills',
     description:
       'Interactive skill radar charts for Torre.ai users with percentile analysis.',
     images: ['/og-image.png'],
-    creator: '@torreradar',
+    creator: '@torrescope',
   },
   robots: {
     index: true,
@@ -78,19 +78,12 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
+          disableTransitionOnChange={false}
+          storageKey="torre-radar-theme"
         >
           <QueryProvider>
             <div className="relative min-h-screen bg-background">
-              <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-14 items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <h1 className="text-xl font-bold">Torre Radar</h1>
-                  </div>
-                  <ThemeToggle />
-                </div>
-              </header>
-              <main className="container mx-auto px-4 py-8">{children}</main>
+              {children}
             </div>
             <Toaster
               position="bottom-right"

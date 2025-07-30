@@ -2,11 +2,10 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function ThemeToggle() {
+export function MinimalThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -15,28 +14,29 @@ export function ThemeToggle() {
   }, []);
 
   const toggleTheme = () => {
+    document.documentElement.style.transition = 'background-color 150ms ease-out, color 150ms ease-out';
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
+
+    setTimeout(() => {
+      document.documentElement.style.transition = '';
+    }, 150);
   };
 
   if (!mounted) {
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-10 h-10 rounded-full hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        aria-label="Toggle theme"
-      >
+      <button className="w-10 h-10 rounded-full flex items-center justify-center">
         <Sun className="h-5 w-5" />
-      </Button>
+      </button>
     );
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <motion.button
       onClick={toggleTheme}
-      className="w-10 h-10 rounded-full hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors duration-200"
+      className="w-10 h-10 rounded-full hover:bg-secondary/50 flex items-center justify-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
     >
       <div className="relative w-5 h-5">
@@ -49,13 +49,13 @@ export function ThemeToggle() {
               exit={{ scale: 0, rotate: 90 }}
               transition={{
                 type: "spring",
-                stiffness: 200,
-                damping: 10,
-                duration: 0.3
+                stiffness: 400,
+                damping: 20,
+                duration: 0.15
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 text-foreground" />
             </motion.div>
           ) : (
             <motion.div
@@ -65,17 +65,17 @@ export function ThemeToggle() {
               exit={{ scale: 0, rotate: -90 }}
               transition={{
                 type: "spring",
-                stiffness: 200,
-                damping: 10,
-                duration: 0.3
+                stiffness: 400,
+                damping: 20,
+                duration: 0.15
               }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <Sun className="h-5 w-5" />
+              <Sun className="h-5 w-5 text-foreground" />
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </Button>
+    </motion.button>
   );
 }

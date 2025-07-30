@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { computePercentile } from '@/lib/computePercentile';
-import type { TorreGenomeResponse, ProcessedGenome, TorreSkill, TorreExperience, TorreLanguage } from '@/types/torre';
+import type { TorreGenomeResponse } from '@/types/torre';
+import { transformTorreData } from '@/lib/torre-transformer';
 
 export const runtime = 'edge';
 
@@ -10,12 +10,9 @@ interface RouteParams {
   };
 }
 
-const TORRE_BASE_URL = process.env.NEXT_PUBLIC_TORRE_BASE || 'https://torre.ai/api';
-
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(_request: Request, { params }: RouteParams) {
   const { username } = params;
 
-  // Validate username
   if (!username || username.trim().length === 0) {
     return NextResponse.json(
       { error: 'Username is required' },
@@ -23,7 +20,6 @@ export async function GET(request: Request, { params }: RouteParams) {
     );
   }
 
-  // Sanitize username to prevent injection
   const sanitizedUsername = username.replace(/[^a-zA-Z0-9._-]/g, '');
   if (sanitizedUsername !== username) {
     return NextResponse.json(
@@ -33,7 +29,6 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   try {
-    // Fetch from Torre API
     const response = await fetch(`https://torre.ai/api/genome/bios/${sanitizedUsername}`, {
       method: 'GET',
       headers: {
@@ -60,41 +55,20 @@ export async function GET(request: Request, { params }: RouteParams) {
       throw new Error(`Torre API responded with ${response.status}`);
     }
 
-    const torreData = await response.json();
+    const torreData: TorreGenomeResponse = await response.json();
 
-    // Process the data
-    const processedData: ProcessedGenome = {
-      username: username,
-      person: {
-        name: torreData.person?.name || '',
-        professionalHeadline: torreData.person?.professionalHeadline || '',
-        location: torreData.person?.location?.name || '',
-        completion: torreData.person?.completion || 0
-      },
-      skills: []
-    };
-
-    // Extract skills from strengths if available
-    if (torreData.strengths && torreData.strengths.length > 0) {
-      processedData.skills = torreData.strengths
-        .filter((strength: TorreSkill) => strength.proficiency && strength.proficiency > 0)
-        .map((strength: TorreSkill) => ({
-          name: strength.name,
-          proficiency: strength.proficiency,
-          percentile: computePercentile(strength.name, strength.proficiency),
-        }))
-        .sort((a: { proficiency: number }, b: { proficiency: number }) => b.proficiency - a.proficiency)
-        .slice(0, 20);
+    if (!torreData.person) {
+      return NextResponse.json(
+        { error: 'Invalid user data received' },
+        { status: 500 }
+      );
     }
 
-    // Sort by proficiency and limit
-    processedData.skills = processedData.skills
-      .sort((a, b) => b.proficiency - a.proficiency)
-      .slice(0, 15); // Limit to 15 for better radar visualization
+    const processedData = transformTorreData(torreData);
+
+    console.log(`Processed ${processedData.skills.length} skills and ${processedData.experiences.length} experiences for user ${sanitizedUsername}`);
 
     const nextResponse = NextResponse.json(processedData);
-
-    // Set cache headers
     nextResponse.headers.set(
       'Cache-Control',
       's-maxage=300, stale-while-revalidate=86400'
@@ -116,7 +90,6 @@ export async function GET(request: Request, { params }: RouteParams) {
   } catch (error) {
     console.error('Error fetching Torre data:', error);
 
-    // Return appropriate error based on error type
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return NextResponse.json(
         { error: 'Network error accessing Torre API' },

@@ -18,7 +18,6 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
     throw new ApiError('Username is required', 400, 'INVALID_USERNAME');
   }
 
-  // Basic input validation
   const sanitizedUsername = username.trim().toLowerCase();
   if (!/^[a-zA-Z0-9._-]+$/.test(sanitizedUsername)) {
     throw new ApiError('Invalid username format', 400, 'INVALID_FORMAT');
@@ -30,8 +29,7 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
       headers: {
         'Content-Type': 'application/json',
       },
-      // Add timeout using AbortController
-      signal: AbortSignal.timeout(15000), // 15 seconds
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
@@ -79,21 +77,19 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
 
     const data: ProcessedGenome = await response.json();
 
-    // Validate response structure
-    if (!data.username || !Array.isArray(data.skills)) {
+    if (!data.person || !data.person.username || !Array.isArray(data.skills)) {
       throw new ApiError(
         'Invalid response format from server',
         500,
         'INVALID_RESPONSE'
       );
     }
-
-    // Validate skills data
     const hasValidSkills = data.skills.every(
       (skill) =>
         skill.name &&
         typeof skill.proficiency === 'number' &&
-        typeof skill.percentile === 'number'
+        typeof skill.percentile === 'number' &&
+        skill.source
     );
 
     if (!hasValidSkills) {
@@ -106,7 +102,6 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
 
     return data;
   } catch (error) {
-    // Handle network errors and timeouts
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new ApiError(
         'Network error. Please check your connection.',
@@ -123,12 +118,9 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
       );
     }
 
-    // Re-throw ApiError instances
     if (error instanceof ApiError) {
       throw error;
     }
-
-    // Handle unknown errors
     console.error('Unexpected error in fetchGenome:', error);
     throw new ApiError(
       'An unexpected error occurred',
@@ -138,20 +130,15 @@ export async function fetchGenome(username: string): Promise<ProcessedGenome> {
   }
 }
 
-// Helper function to check if an error is retryable
 export function isRetryableError(error: unknown): boolean {
   if (!(error instanceof ApiError)) return false;
-  
-  // Don't retry on client errors (4xx) except for rate limiting
+
   if (error.status >= 400 && error.status < 500 && error.status !== 429) {
     return false;
   }
 
-  // Retry on server errors and rate limiting
   return error.status >= 500 || error.status === 429 || error.status === 0;
 }
-
-// Helper function to get user-friendly error messages
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     return error.message;

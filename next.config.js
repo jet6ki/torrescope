@@ -6,14 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/genome/:username',
-        destination: 'https://torre.ai/api/genome/bios/:username'
-      }
-    ]
-  },
+
   async headers() {
     return [
       {

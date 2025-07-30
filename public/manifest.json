@@ -1,6 +1,6 @@
 {
-  "name": "Torre Radar",
-  "short_name": "Torre Radar",
+  "name": "TorreScope",
+  "short_name": "TorreScope",
   "description": "Visualize Torre skill profiles with interactive radar charts",
   "start_url": "/",
   "display": "standalone",
