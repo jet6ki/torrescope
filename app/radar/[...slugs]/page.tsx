@@ -11,14 +11,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Share2, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import toast from 'react-hot-toast';
-import type { Metadata } from 'next';
-
 interface PageParams {
   slugs: string[];
 }
 
 export default function RadarPage() {
-  const params = useParams() as PageParams;
+  const params = useParams() as unknown as PageParams;
   const router = useRouter();
   const { setCompareUsername } = useCompareStore();
   const [usernames, setUsernames] = useState<{
@@ -180,43 +178,3 @@ export default function RadarPage() {
   );
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: PageParams;
-}): Promise<Metadata> {
-  if (!params.slugs || params.slugs.length === 0) {
-    return {
-      title: 'TorreScope',
-      description: 'Skill visualization for Torre users',
-    };
-  }
-
-  const slug = params.slugs[0];
-  const parts = slug.split('+');
-  const primary = parts[0];
-  const compare = parts[1];
-
-  const title = compare
-    ? `${primary} vs ${compare} - TorreScope`
-    : `${primary} - TorreScope`;
-
-  const description = compare
-    ? `Compare skill profiles between ${primary} and ${compare} on TorreScope`
-    : `View ${primary}'s skill radar chart with percentile analysis`;
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url: `https://torre-radar.vercel.app/radar/${slug}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-    },
-  };
-}

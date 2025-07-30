@@ -120,8 +120,8 @@ export function SkillRadar({
       });
 
       const link = document.createElement('a');
-      link.download = `torre-radar-${primaryData.username}${
-        compareData ? `-vs-${compareData.username}` : ''
+      link.download = `torre-radar-${primaryData.person.username}${
+        compareData ? `-vs-${compareData.person.username}` : ''
       }.png`;
       link.href = canvas.toDataURL();
       link.click();
@@ -193,8 +193,8 @@ export function SkillRadar({
             </p>
             {radarData.length > 0 && (
               <p className="text-muted-foreground mt-1">
-                Showing {radarData.length} skills for {primaryData.person.name || primaryData.username}
-                {compareData && ` and ${compareData.person.name || compareData.username}`}.
+                Showing {radarData.length} skills for {primaryData.person.name || primaryData.person.username}
+                {compareData && ` and ${compareData.person.name || compareData.person.username}`}.
               </p>
             )}
           </div>
@@ -336,7 +336,7 @@ export function SkillRadar({
               {compareData && item.compare !== undefined && (
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-sm text-muted-foreground">
-                    {compareData.username}:
+                    {compareData.person.username}:
                   </span>
                   <div className="text-right">
                     <div className="text-sm">{item.compare.toFixed(1)}/5</div>
