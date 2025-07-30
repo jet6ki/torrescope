@@ -159,6 +159,10 @@ pnpm build
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
+## LLM/AI Usage Documentation
+
+All prompts used during development are documented in [PROMPTS.md](./PROMPTS.md).
+
 ## Acknowledgments
 
 - [Torre.ai](https://torre.ai) for providing the genome API
