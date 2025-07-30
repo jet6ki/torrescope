@@ -1,4 +1,4 @@
-# Torre Radar 🎯
+# torrescope
 
 A Next.js 14 application that visualizes Torre.ai user skills as interactive radar charts with percentile comparisons.
 

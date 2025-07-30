@@ -1,0 +1,14 @@
+{
+  "name": "torrescope",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_TORRE_BASE": "https://torre.ai/api"
+  }
+}

@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://torre-radar.vercel.app',
+    url: 'https://torrescope.vercel.app',
     title: 'TorreScope | Visualize Your Skills',
     description:
       'Interactive skill radar charts for Torre.ai users with percentile analysis and comparison features.',
