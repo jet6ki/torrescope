@@ -2,6 +2,8 @@
 
 A Next.js 14 application that visualizes Torre.ai user skills as interactive radar charts with percentile comparisons.
 
+**Live Demo**: https://torrescope-o1d9m1z1j-aymans-projects-f5871755.vercel.app
+
 ## Features
 
 - **Interactive Skill Radar**: Visualize any Torre user's skills as a radar chart
@@ -89,23 +91,15 @@ cp .env.example .env.local
 
 ## Deployment
 
-### Vercel (Recommended)
+### Vercel (Deployed)
+
+**Live Application**: https://torrescope-o1d9m1z1j-aymans-projects-f5871755.vercel.app
 
 ```bash
 # Deploy to Vercel
 npx vercel
 
 # Set environment variables in Vercel dashboard
-```
-
-### Docker
-
-```bash
-# Build image
-docker build -t torre-radar .
-
-# Run container
-docker run -p 3000:3000 torre-radar
 ```
 
 ## Usage Examples
